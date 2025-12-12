@@ -127,26 +127,50 @@
     </nav>
 
     <main>
+        <div class="donation-box">
+            <h2>Support Our Cause</h2>
+            <form id="donationForm">
+                <input type="text" id="name" placeholder="Your Name" required>
+                <input type="email" id="email" placeholder="Your Email" required>
+                <input type="number" id="amount" placeholder="Donation Amount (UGX)" required>
+                <button type="submit">Donate Now</button>
+            </form>
+        </div>
 
-        <section class="donate-section">
-            <div class="section-overlay"></div>
-            <div class="container">
-                <div class="row">
+        <script>
+            document.getElementById("donationForm").addEventListener("submit", function (e) {
+                e.preventDefault();
 
-                    <div class="col-lg-6 col-12 mx-auto">
-                        <form method="POST">
-                            {% csrf_token %}
-                            <input type="text" name="name" placeholder="Your Name" required>
-                            <input type="email" name="email" placeholder="Your Email" required>
-                            <input type="number" name="amount" placeholder="Donation Amount" required>
-                            <button type="submit">Donate Now</button>
-                        </form>
+                var name = document.getElementById("name").value;
+                var email = document.getElementById("email").value;
+                var amount = document.getElementById("amount").value;
 
-                    </div>
-
-                </div>
-            </div>
-        </section>
+                FlutterwaveCheckout({
+                    public_key: "YOUR_FLUTTERWAVE_PUBLIC_KEY", // replace with your key
+                    tx_ref: "donation-" + Date.now(),
+                    amount: amount,
+                    currency: "UGX",
+                    payment_options: "card,mobilemoneyuganda",
+                    customer: {
+                        email: email,
+                        name: name,
+                    },
+                    customizations: {
+                        title: "Charity Donation",
+                        description: "Support our charity work",
+                        logo: "https://yourwebsite.com/logo.png", // optional
+                    },
+                    callback: function (data) {
+                        console.log(data);
+                        alert("Thank you for your donation!");
+                        // You can also send data to your backend here
+                    },
+                    onclose: function () {
+                        alert("Donation window closed.");
+                    },
+                });
+            });
+        </script>
     </main>
 
     <footer class="site-footer">
