@@ -411,7 +411,7 @@
                     public_key: "YOUR_FLUTTERWAVE_PUBLIC_KEY", // replace with your key
                     tx_ref: "donation-" + Date.now(),
                     amount: amount,
-                    currency: "UGX",
+                    currency: "USD",
                     payment_options: "card,mobilemoneyuganda",
                     customer: {
                         email: email,
@@ -424,7 +424,7 @@
                     },
                     callback: function (data) {
                         console.log(data);
-                        alert("Thank you for your donation via Flutterwave!");
+                        alert("Thank you for your donation");
                     },
                     onclose: function () {
                         alert("Donation window closed.");
