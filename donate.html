@@ -383,7 +383,12 @@
             </div>
         </div>
     </footer>
+    <!-- Flutterwave Checkout -->
     <script src="https://checkout.flutterwave.com/v3.js"></script>
+
+    <!-- PayPal SDK -->
+    <script src="https://www.paypal.com/sdk/js?client-id=YOUR_PAYPAL_CLIENT_ID&currency=USD"></script>
+
     <script>
         document.querySelector(".donate-form").addEventListener("submit", function (e) {
             e.preventDefault();
@@ -397,35 +402,52 @@
                 amount = document.querySelector('input[placeholder="Custom amount"]').value;
             }
 
-            FlutterwaveCheckout({
-                public_key: "YOUR_FLUTTERWAVE_PUBLIC_KEY", // replace with your key
-                tx_ref: "donation-" + Date.now(),
-                amount: amount,
-                currency: "UGX",
-                payment_options: "card,mobilemoneyuganda",
-                customer: {
-                    email: email,
-                    name: name,
-                },
-                customizations: {
-                    title: "Charity Donation",
-                    description: "Support our cause",
-                    logo: "https://yourwebsite.com/logo.png",
-                },
-                callback: function (data) {
-                    console.log(data);
-                    alert("Thank you for your donation!");
-                    // Send donation info to backend
-                    fetch("/donations/save/", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
-                        body: JSON.stringify({ name, email, amount, tx_ref: data.tx_ref, status: data.status })
-                    });
-                },
-                onclose: function () {
-                    alert("Donation window closed.");
-                },
-            });
+            // Check which payment method was selected
+            const paymentMethod = document.querySelector('input[name="DonationPayment"]:checked')?.nextElementSibling.innerText;
+
+            if (paymentMethod.includes("Mobile Money") || paymentMethod.includes("Debit") || paymentMethod.includes("Credit")) {
+                // Flutterwave Checkout
+                FlutterwaveCheckout({
+                    public_key: "YOUR_FLUTTERWAVE_PUBLIC_KEY", // replace with your key
+                    tx_ref: "donation-" + Date.now(),
+                    amount: amount,
+                    currency: "UGX",
+                    payment_options: "card,mobilemoneyuganda",
+                    customer: {
+                        email: email,
+                        name: name,
+                    },
+                    customizations: {
+                        title: "Charity Donation",
+                        description: "Support our cause",
+                        logo: "https://yourwebsite.com/logo.png",
+                    },
+                    callback: function (data) {
+                        console.log(data);
+                        alert("Thank you for your donation via Flutterwave!");
+                    },
+                    onclose: function () {
+                        alert("Donation window closed.");
+                    },
+                });
+            } else if (paymentMethod.includes("Paypal")) {
+                // Render PayPal button dynamically
+                document.querySelector(".donate-form").innerHTML = '<div id="paypal-button-container"></div>';
+                paypal.Buttons({
+                    createOrder: function (data, actions) {
+                        return actions.order.create({
+                            purchase_units: [{
+                                amount: { value: amount }
+                            }]
+                        });
+                    },
+                    onApprove: function (data, actions) {
+                        return actions.order.capture().then(function (details) {
+                            alert("Thank you " + details.payer.name.given_name + " for your donation via PayPal!");
+                        });
+                    }
+                }).render('#paypal-button-container');
+            }
         });
     </script>
     <!-- JAVASCRIPT FILES -->
