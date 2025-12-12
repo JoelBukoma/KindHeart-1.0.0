@@ -383,7 +383,51 @@
             </div>
         </div>
     </footer>
+    <script src="https://checkout.flutterwave.com/v3.js"></script>
+    <script>
+        document.querySelector(".donate-form").addEventListener("submit", function (e) {
+            e.preventDefault();
 
+            const name = document.getElementById("donation-name").value;
+            const email = document.getElementById("donation-email").value;
+
+            // Get selected amount or custom amount
+            let amount = document.querySelector('input[name="flexRadioDefault"]:checked')?.nextElementSibling.innerText.replace('$', '');
+            if (!amount) {
+                amount = document.querySelector('input[placeholder="Custom amount"]').value;
+            }
+
+            FlutterwaveCheckout({
+                public_key: "YOUR_FLUTTERWAVE_PUBLIC_KEY", // replace with your key
+                tx_ref: "donation-" + Date.now(),
+                amount: amount,
+                currency: "UGX",
+                payment_options: "card,mobilemoneyuganda",
+                customer: {
+                    email: email,
+                    name: name,
+                },
+                customizations: {
+                    title: "Charity Donation",
+                    description: "Support our cause",
+                    logo: "https://yourwebsite.com/logo.png",
+                },
+                callback: function (data) {
+                    console.log(data);
+                    alert("Thank you for your donation!");
+                    // Send donation info to backend
+                    fetch("/donations/save/", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
+                        body: JSON.stringify({ name, email, amount, tx_ref: data.tx_ref, status: data.status })
+                    });
+                },
+                onclose: function () {
+                    alert("Donation window closed.");
+                },
+            });
+        });
+    </script>
     <!-- JAVASCRIPT FILES -->
     <script src="js/jquery.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
